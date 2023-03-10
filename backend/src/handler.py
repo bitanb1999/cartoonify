@@ -25,8 +25,7 @@ def img_to_base64_str(img):
     img.save(buffered, format="PNG")
     buffered.seek(0)
     img_byte = buffered.getvalue()
-    img_str = "data:image/png;base64," + base64.b64encode(img_byte).decode()
-    return img_str
+    return f"data:image/png;base64,{base64.b64encode(img_byte).decode()}"
 
 
 def load_models(s3, bucket):
@@ -53,7 +52,7 @@ bucket = "cartoongan"
 mapping_id_to_style = {0: "Hosoda", 1: "Hayao", 2: "Shinkai", 3: "Paprika"}
 
 models = load_models(s3, bucket)
-print(f"models loaded ...")
+print("models loaded ...")
 
 
 def lambda_handler(event, context):
@@ -69,7 +68,7 @@ def lambda_handler(event, context):
     print("data keys :", data.keys())
     image = data["image"]
     image = image[image.find(",") + 1 :]
-    dec = base64.b64decode(image + "===")
+    dec = base64.b64decode(f"{image}===")
     image = Image.open(BytesIO(dec))
     image = image.convert("RGB")
 
@@ -101,11 +100,7 @@ def lambda_handler(event, context):
 
     # preprocess, (-1, 1)
     image = -1 + 2 * image
-    if gpu > -1:
-        image = Variable(image, volatile=True).cuda()
-    else:
-        image = image.float()  # Variable(input_image).float()
-
+    image = Variable(image, volatile=True).cuda() if gpu > -1 else image.float()
     with torch.no_grad():
         output_image = model(image)
         output_image = output_image[0]

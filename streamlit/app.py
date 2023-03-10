@@ -45,7 +45,7 @@ if uploaded_image is not None:
         delta = time.time() - t0
         image = response.json()["output"]
         image = image[image.find(",") + 1 :]
-        dec = base64.b64decode(image + "===")
+        dec = base64.b64decode(f"{image}===")
         binary_output = BytesIO(dec)
 
         st.sidebar.warning(f"Processing took {delta:.3} seconds")
